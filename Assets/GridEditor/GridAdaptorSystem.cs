@@ -25,14 +25,10 @@ namespace GridEditor
 
             foreach (Edge edge in _sourceGraph.Edges)
             {
-                CreateEdge(nodesMap[edge.NodeA], nodesMap[edge.NodeB]);
+                EcsEntity entity = _world.NewEntity();
+                edge.CreateEdgeComponent(entity, nodesMap, _sourceGraph);
             }
         }
         
-        private void CreateEdge(int nodeA, int nodeB)
-        {
-            EcsEntity entity = _world.NewEntity();
-            entity.Replace(new EdgeComponent {NodeA = nodeA, NodeB = nodeB, Spring = 70, Dumper = 30});
-        }
     }
 }

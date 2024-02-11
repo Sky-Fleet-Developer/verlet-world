@@ -1,6 +1,7 @@
-﻿using Leopotam.Ecs;
+﻿using Bones.Components;
+using Leopotam.Ecs;
 
-namespace Bones
+namespace Bones.Systems
 {
     public class FloorColliderSystem : IEcsRunSystem
     {

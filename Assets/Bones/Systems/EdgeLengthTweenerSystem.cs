@@ -1,4 +1,4 @@
-﻿namespace Bones
+﻿namespace Bones.Systems
 {
     public class EdgeLengthTweenerSystem
     {

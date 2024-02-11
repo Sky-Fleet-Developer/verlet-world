@@ -1,14 +1,24 @@
-﻿using Leopotam.Ecs;
+﻿using Bones.Components;
+using Canvas;
+using Leopotam.Ecs;
 using UnityEngine;
+using Zenject;
 
-namespace Bones
+namespace Bones.Systems
 {
     public class FlatVerletSystem : IEcsRunSystem, IEcsInitSystem
     {
         private EcsFilter<NodeComponent> _nodesFilter; 
         private EcsFilter<EdgeComponent> _edgesFilter; 
         private EcsFilter<NodeVelocityComponent> _velocitiesFilter;
+        [Inject] private TimeService _timeService;
         private EcsWorld _world;
+        private bool _needInitEdgesLength;
+
+        public FlatVerletSystem(bool needInitEdgesLength)
+        {
+            _needInitEdgesLength = needInitEdgesLength;
+        }
         public void Init()
         {
             foreach (int i in _edgesFilter)
@@ -18,7 +28,10 @@ namespace Bones
                 NodeComponent nodeB = _nodesFilter.Get1(edgeComponent.NodeB);
                 _nodesFilter.GetEntity(edgeComponent.NodeA).Replace(new NodeVelocityComponent());
                 _nodesFilter.GetEntity(edgeComponent.NodeB).Replace(new NodeVelocityComponent());
-                edgeComponent.Length = Vector3.Distance(nodeA.Position, new Vector3(nodeB.Position.x, nodeB.Position.y, nodeA.Position.z));
+                if (_needInitEdgesLength)
+                {
+                    edgeComponent.Length = Vector3.Distance(nodeA.Position, new Vector3(nodeB.Position.x, nodeB.Position.y, nodeA.Position.z));
+                }
             }
         }
         
@@ -39,19 +52,19 @@ namespace Bones
                 Vector3 directionAb = deltaAb / currentLength;
 
                 float pushDistance = edgeLength - currentLength;
-                Vector3 springImpulse = directionAb * (pushDistance * Time.deltaTime * 0.5f) * edgeComponent.Spring;
+                Vector3 springImpulse = directionAb * (pushDistance * _timeService.DeltaTime * 0.5f) * edgeComponent.Spring;
 
-                Vector3 dumperImpulse = directionAb * Vector3.Dot(velocityB.Velocity - velocityA.Velocity, directionAb) * edgeComponent.Dumper;
+                Vector3 dumperImpulse = directionAb * Vector3.Dot(velocityB.Velocity - velocityA.Velocity, directionAb) * edgeComponent.Dumper * _timeService.DeltaTime;
                 if (!nodeA.IsStatic)
                 {
                     velocityA.Velocity -= springImpulse;
-                    velocityA.Velocity += dumperImpulse * Time.deltaTime;
+                    velocityA.Velocity += dumperImpulse;
                 }
 
                 if (!nodeB.IsStatic)
                 {
                     velocityB.Velocity += springImpulse;
-                    velocityB.Velocity -= dumperImpulse * Time.deltaTime;
+                    velocityB.Velocity -= dumperImpulse;
                 }
             }
 
@@ -61,7 +74,7 @@ namespace Bones
                 if (!node.IsStatic)
                 {
                     ref NodeVelocityComponent velocity = ref _velocitiesFilter.Get1(i);
-                    node.Position += velocity.Velocity * Time.deltaTime;
+                    node.Position += velocity.Velocity * _timeService.DeltaTime;
                 }
             }
         }

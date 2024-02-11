@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Bones.Components;
+using Bones.Systems;
+using Canvas;
 using Leopotam.Ecs;
 using UnityEngine;
 using Zenject;
@@ -10,7 +13,8 @@ namespace Bones
     {
         public int NodesCount { get; private set; }
         private DiContainer _diContainer;
-        
+        private int _iterationsCount = 30;
+        [Inject] private TimeService _timeService;
         [Inject]
         private void Inject(DiContainer diContainer)
         {
@@ -26,8 +30,8 @@ namespace Bones
         protected override IEnumerable<EcsSystems> Create(Func<EcsSystems> creator)
         {
             yield return creator();
-            yield return creator().Add(new FlatVerletSystem()).Add(new FloorColliderSystem()).Add(new GravitySystem());
-            yield return creator().Add(new HandlePointSystem()).Add(new DebugDrawEdgesSystem());//.Add(new DebugDrawEdgesSystem());
+            yield return creator().Add(new FlatVerletSystem(false)).Add(new FloorColliderSystem()).Add(new GravitySystem());
+            yield return creator().Add(new HandlePointSystem()).Add(new DebugDrawEdgesSystem()).Add(new LeverInputSystem());
         }
         
         protected override EcsSystems Inject(EcsSystems systems)
@@ -59,7 +63,7 @@ namespace Bones
         void FixedUpdate()
         {
             if (!IsInitialized) return;
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < _timeService.Iterations; i++)
             {
                 GetSystemsGroup(1).Run();
             }

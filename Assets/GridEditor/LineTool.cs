@@ -1,11 +1,15 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UnityEngine;
 
 namespace GridEditor
 {
+    [Serializable]
     public class LineTool : Tool
     {
         private SelectionTool _selectionTool;
+        private bool _createLeverEdge = false;
+        public KeyCode LeverKey;
         public LineTool(Toolbox toolbox) : base(toolbox)
         {
         }
@@ -15,13 +19,19 @@ namespace GridEditor
             _selectionTool = Toolbox.GetTool<SelectionTool>();
         }
 
+
+        public override void OnGui()
+        {
+            _createLeverEdge = Input.GetKey(KeyCode.LeftAlt);
+            base.OnGui();
+        }
+
         public override void OnMouseUp(Vector3 position, ClickParams clickParams)
         {
             base.OnMouseUp(position, clickParams);
 
-            if (DragDelta.sqrMagnitude < 0.1f)
+            if (DragDelta.sqrMagnitude < GraphEditor.AnchorDist)
             {
-                Node closestNode = Toolbox.Graph.GetClosestNode(position, out _, GraphEditor.AnchorDist);
                 
                 if (clickParams.IsAlternative)
                 {
@@ -33,15 +43,15 @@ namespace GridEditor
                         }
                         _selectionTool.SelectedNodes.Clear();
                     }
-                    else
+                    else if (ClosestNode != null)
                     {
-                        Toolbox.Graph.RemoveNode(closestNode.Id);
+                        Toolbox.Graph.RemoveNode(ClosestNode.Id);
                     }
                     return;
                 }
                 
 
-                if (closestNode == null)
+                if (ClosestNode == null)
                 {
                     if (_selectionTool.SelectedNodes.Count == 0)
                     {
@@ -58,12 +68,12 @@ namespace GridEditor
                 {
                     if (_selectionTool.SelectedNodes.Count == 0)
                     {
-                        Enqueue(closestNode.Id);
+                        Enqueue(ClosestNode.Id);
                         return;
                     }
                     else
                     {
-                        Step(closestNode.Id);
+                        Step(ClosestNode.Id);
                         return;
                     }
                 }
@@ -90,7 +100,7 @@ namespace GridEditor
         private void Step(int nodeId)
         {
             int lastNode = _selectionTool.SelectedNodes.Peek();
-            if (Toolbox.Graph.TryAddEdge(lastNode, nodeId, out _))
+            if (TryAddEdge(lastNode, nodeId, out _))
             {
                 _selectionTool.SelectedNodes.Dequeue();
                 _selectionTool.SelectedNodes.Enqueue(nodeId);
@@ -99,6 +109,30 @@ namespace GridEditor
             {
                 Debug.Log("Operation cancelled: add new edge. Course: already exists");
             }
+        }
+
+        private bool TryAddEdge(int nodeA, int nodeB, out Edge edge)
+        {
+            if (_createLeverEdge)
+            {
+                if (Toolbox.Graph.TryAddEdge(nodeA, nodeB, out LeverEdge leverEdge))
+                {
+                    leverEdge.Key = LeverKey;
+                    leverEdge.ActivatedLengthPercent = 0.4f;
+                    edge = leverEdge;
+                    return true;
+                }
+            }
+            else
+            {
+                if (Toolbox.Graph.TryAddEdge(nodeA, nodeB, out edge))
+                {
+                    return true;
+                }
+            }
+
+            edge = null;
+            return false;
         }
     }
 }

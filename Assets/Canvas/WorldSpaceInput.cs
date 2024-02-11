@@ -28,13 +28,20 @@ namespace Canvas
             {
                 if (Input.GetMouseButtonDown(i))
                 {
-                    MouseDown?.Invoke(i);
+                    if (_mousePosition.y > 0)
+                    {
+                        MouseDown?.Invoke(i);
+                        _mousePressed[i] = true;
+                    }
                 }
                 if (Input.GetMouseButtonUp(i))
                 {
-                    MouseUp?.Invoke(i);
+                    if (_mousePressed[i])
+                    {
+                        MouseUp?.Invoke(i);
+                        _mousePressed[i] = false;
+                    }
                 }
-                _mousePressed[i] = Input.GetMouseButton(i);
             }
         }
     }

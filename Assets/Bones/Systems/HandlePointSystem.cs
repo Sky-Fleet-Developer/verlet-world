@@ -1,9 +1,10 @@
-﻿using Canvas;
+﻿using Bones.Components;
+using Canvas;
 using Leopotam.Ecs;
 using UnityEngine;
 using Zenject;
 
-namespace Bones
+namespace Bones.Systems
 {
     public class HandlePointSystem : IEcsRunSystem, IEcsInitSystem
     {

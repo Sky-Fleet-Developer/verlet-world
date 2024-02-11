@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Bones
+namespace Bones.Components
 {
     public struct NodeVelocityComponent
     {

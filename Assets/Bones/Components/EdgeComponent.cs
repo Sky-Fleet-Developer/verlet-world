@@ -1,4 +1,4 @@
-﻿namespace Bones
+﻿namespace Bones.Components
 {
     public struct EdgeComponent
     {

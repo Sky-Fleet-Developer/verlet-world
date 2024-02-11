@@ -18,19 +18,24 @@ namespace GridEditor
         }
 
         
-        public bool TryAddEdge(int nodeA, int nodeB, out Edge edge)
+        public bool TryAddEdge<T>(int nodeA, int nodeB, out T edge) where T : Edge, new()
         {
-            Edge newEdge = new Edge();
+            if (nodeA == nodeB)
+            {
+                edge = null;
+                return false;
+            }
+            Edge newEdge = new T();
             newEdge.NodeA = nodeA;
             newEdge.NodeB = nodeB;
             if (Edges.Contains(newEdge))
             {
-                edge = Edges.First(x => x.Equals(newEdge));
+                edge = (T)Edges.First(x => x.Equals(newEdge));
                 return false;
             }
 
             Edges.Add(newEdge);
-            edge = newEdge;
+            edge = (T)newEdge;
             return true;
         }
         
@@ -71,7 +76,21 @@ namespace GridEditor
         }
         public void RemoveConnectedEdges(int node)
         {
-            Edges = Edges.Except(GetConnectedEdges(node)).ToList();
+            IEnumerable<Edge> connected = GetConnectedEdges(node);
+            Edges = Edges.Except(connected).ToList();
+            IEnumerable<int> otherNodes = connected.Select(x => x.NodeA == node ? x.NodeB : x.NodeA);
+            foreach (int otherNode in otherNodes)
+            {
+                if (!GetConnectedEdges(otherNode).Any())
+                {
+                    RemoveNode(otherNode, false);
+                }
+            }
+        }
+
+        public float GetDistanceBetweenNodes(int nodeA, int nodeB)
+        {
+            return Vector3.Distance(Nodes[nodeA].Position, Nodes[nodeB].Position);
         }
     }
 }
