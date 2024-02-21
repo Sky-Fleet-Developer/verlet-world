@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using Bones.Collision;
 using Bones.Components;
 using Bones.Systems;
 using Canvas;
 using Leopotam.Ecs;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 using Zenject;
 
 namespace Bones
@@ -30,8 +32,11 @@ namespace Bones
         protected override IEnumerable<EcsSystems> Create(Func<EcsSystems> creator)
         {
             yield return creator();
-            yield return creator().Add(new FlatVerletSystem(false)).Add(new FloorColliderSystem()).Add(new GravitySystem());
-            yield return creator().Add(new HandlePointSystem()).Add(new DebugDrawEdgesSystem()).Add(new LeverInputSystem());
+            yield return creator().Add(new FlatVerletSystem(false)).Add(new GravitySystem());//.Add(new FloorColliderSystem())
+            var grid = _diContainer.Resolve<Grid>();
+            var tilemap = _diContainer.Resolve<Tilemap>();
+            yield return creator().Add(new GridSystem(grid)).Add(new CollideSystem(tilemap, grid, 0.2f)).Add(new DebugDrawEdgesSystem()).Add(new DebugVelocitiesDrawSystem());
+            yield return creator().Add(new HandlePointSystem()).Add(new LeverInputSystem());
         }
         
         protected override EcsSystems Inject(EcsSystems systems)
@@ -67,12 +72,13 @@ namespace Bones
             {
                 GetSystemsGroup(1).Run();
             }
+            GetSystemsGroup(2).Run();
         }
 
         void Update()
         {
             if (!IsInitialized) return;
-            GetSystemsGroup(2).Run();
+            GetSystemsGroup(3).Run();
         }
     }
 }
