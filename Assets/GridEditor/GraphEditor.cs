@@ -11,7 +11,7 @@ namespace GridEditor
     public class GraphEditor : MonoBehaviour
     {
         public const float AnchorDist = 0.3f;
-        [SerializeField] private SkeletonAdaptor skeleton;
+        [SerializeField] private GraphToRigidAdaptor skeleton;
         [Inject] private WorldSpaceInput _worldSpaceInput;
         [ShowInInspector] private Toolbox _toolbox = new Toolbox(new Graph(), typeof(LineTool), typeof(SelectionTool), typeof(ShapeTool));
         private bool _isEditorActive = false;
@@ -83,8 +83,9 @@ namespace GridEditor
                 if (GUILayout.Button("Construct", GUILayout.Width(200)))
                 {
                     skeleton.gameObject.SetActive(true);
-                    skeleton.AddSystemDelayed(0, new GridAdaptorSystem(_toolbox.Graph));
-                    skeleton.Init();
+                    //skeleton.AddSystemDelayed(0, new GridAdaptorSystem(_toolbox.Graph));
+                    //skeleton.Init();
+                    skeleton.ConstructFromGraph(_toolbox.Graph);
                     _isEditorActive = false;
                     RemoveSubscriptions();
                 }
